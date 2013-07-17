@@ -187,7 +187,6 @@ main (int argc, char *argv[])
 					exit(1);
 				}
 				break;
-				break;
 			case 's':
 				havepath++;
 				strncpy(path, optarg, sizeof(path)-1);
