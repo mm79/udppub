@@ -1,0 +1,6 @@
+This daemon receives udp packets and send on a socket of type ZMQ_PUB
+
+According to zmq_socket(3):
+
+"A socket of type ZMQ_PUB is used by a publisher to distribute data.
+Messages sent are distributed in a fan out fashion to all connected peers"
