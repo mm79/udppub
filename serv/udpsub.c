@@ -52,7 +52,6 @@
 #include <zmq.h>
         
 int daemonize = 1;
-int rcvlen = 65536;
 int debug;
 int done;
 
@@ -137,6 +136,7 @@ main (int argc, char *argv[])
 	int havepath = 0;
 	int maxsndmsg = 0;
 	size_t bsize = 1500;
+	int rcvlen = 65536;
 	uint16_t port = 0;
 
 	extern char *optarg;
