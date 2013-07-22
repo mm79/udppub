@@ -80,21 +80,21 @@ drop_priv(uid_t uid, gid_t gid)
         if (getuid() == 0) {
                 if (setgroups(1, &gid) == -1) {
 			perror("setgroups()");
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
                 if (setgid(gid) == -1) {
 			perror("setgid()");
-                        exit(1);
+                        exit(EXIT_FAILURE);
                 }
 		if (setuid(uid) == -1) {
 			perror("setuid()");
-                        exit(1);
+                        exit(EXIT_FAILURE);
                 }
         }
 
 	if (setuid(0) != -1) {
 		fprintf(stderr, "unable to drop privileges"); 
-                exit(1);
+                exit(EXIT_FAILURE);
         }
 }
 
@@ -147,7 +147,7 @@ main (int argc, char *argv[])
 			case 'b':
 				if (sscanf(optarg, "%zd", &bsize) != 1) {
 					perror("sscanf()");
-					exit(1);
+					exit(EXIT_FAILURE);
 				}
 
 				/*
@@ -155,7 +155,7 @@ main (int argc, char *argv[])
 				 */
 				if (bsize <= 0 || bsize > (1<<16)) {
 					printf("wrong bsize parameter\n");
-					exit(1);
+					exit(EXIT_FAILURE);
 				}
 				break;
 			case 'd':
@@ -168,7 +168,7 @@ main (int argc, char *argv[])
 				if (sscanf(optarg, "%d", &maxsndmsg) != 1 ||
 					maxsndmsg < 0) {
 					printf("wrong -h parameter\n");
-					exit(1);
+					exit(EXIT_FAILURE);
 				}
 				break;
 			case 'n':
@@ -177,14 +177,14 @@ main (int argc, char *argv[])
 			case 'p':
 				if (sscanf(optarg, "%hu", &port) != 1) {
 					printf("wrong -p parameter\n");
-					exit(1);
+					exit(EXIT_FAILURE);
 				} 
 				break;
 			case 'r':
 				if (sscanf(optarg, "%d", &rcvlen) != 1 ||
 					rcvlen < 0) {
 					printf("wrong -r parameter\n");
-					exit(1);
+					exit(EXIT_FAILURE);
 				}
 				break;
 			case 's':
@@ -202,18 +202,18 @@ main (int argc, char *argv[])
 		(dropuser != NULL && dropgroup == NULL) ||
 		(dropgroup == NULL && dropuser != NULL)) {
 		usage(argv[0]);
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 
 	if (dropuser && dropgroup) {
 		if ((pw = getpwnam(dropuser)) == NULL) {
 			fprintf(stderr, "Unable to find user %s\n", dropuser);
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 
 		if ((gr = getgrnam(dropgroup)) == NULL) {
 			fprintf(stderr, "Unable to find group %s\n", dropgroup);
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 
 		drop_priv(pw->pw_uid, gr->gr_gid);
@@ -222,7 +222,7 @@ main (int argc, char *argv[])
 	if (daemonize && !debug) {
 		if (daemon(0, 0) < 0) {
 			perror("daemon()");
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 
 		openlog("udppub", LOG_PID | LOG_NDELAY, LOG_DAEMON);
@@ -231,19 +231,19 @@ main (int argc, char *argv[])
 	if ((buf = (char *)malloc(bsize)) == NULL) {
 		msg(LOG_ERR, "error allocating %d bytes with malloc(): %s", 
 			bsize, strerror(errno));
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
         if ((context = zmq_ctx_new()) == NULL) {
                 msg(LOG_ERR, "zmq_ctx_new(): %s", strerror(errno));
-                exit(1);
+                exit(EXIT_FAILURE);
         }
 
         if ((publisher = zmq_socket(context, ZMQ_PUB)) == NULL) {
                 msg(LOG_ERR, "zmq_socket(): %s", strerror(errno));
 		zmq_ctx_destroy(context);
 
-                exit(1);
+                exit(EXIT_FAILURE);
         }
 
 	action.sa_handler = catchsig;
@@ -266,12 +266,12 @@ main (int argc, char *argv[])
 	if (zmq_setsockopt(publisher, ZMQ_SNDHWM, &maxsndmsg, sizeof(int)) < 0)
 	{ 
 		msg(LOG_ERR, "zmq_setsockopt(ZMQ_SNDHWM): %s", strerror(errno));
-		exit(1);
+		exit(EXIT_FAILURE);
 	} 
 
         if (zmq_bind(publisher, path) < 0) {
                 msg(LOG_ERR, "zmq_bind(): %s", strerror(errno));
-                exit(1);
+                exit(EXIT_FAILURE);
         }
 
         memset(&sin, 0, sizeof sin);
@@ -281,19 +281,19 @@ main (int argc, char *argv[])
 
         if ((fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
                 msg(LOG_ERR, "udp socket(): %s", strerror(errno));
-                exit(1);
+                exit(EXIT_FAILURE);
         }
 
 	if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char *)&rcvlen, sizeof rcvlen) < 0)
 	{
         	msg(LOG_ERR, "error setting so_rcvbuf = %d: %s", rcvlen, 
 			strerror(errno));
-         	exit(1);
+         	exit(EXIT_FAILURE);
         }
 
         if (bind(fd, (struct sockaddr *)&sin, sizeof sin) < 0) {
                 msg(LOG_ERR, "udp bind(): %s", strerror(errno));
-                exit(1);
+                exit(EXIT_FAILURE);
         }
 
         while (!done) {
@@ -332,12 +332,12 @@ main (int argc, char *argv[])
 
 	if (zmq_close(publisher) < 0) {
                 msg(LOG_ERR, "zmq_close(): %s", strerror(errno));
-                exit(1);
+                exit(EXIT_FAILURE);
         }
 
         if (zmq_ctx_destroy(context) < 0) {
                 msg(LOG_ERR, "zmq_ctx_destroy(): %s", strerror(errno));
-                exit(1);
+                exit(EXIT_FAILURE);
         }
 
         return 0;
