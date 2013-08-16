@@ -241,9 +241,7 @@ main (int argc, char *argv[])
 
         if ((publisher = zmq_socket(context, ZMQ_PUB)) == NULL) {
                 msg(LOG_ERR, "zmq_socket(): %s", strerror(errno));
-		zmq_ctx_destroy(context);
-
-                exit(EXIT_FAILURE);
+		goto endcontext;
         }
 
 	action.sa_handler = catchsig;
@@ -266,12 +264,12 @@ main (int argc, char *argv[])
 	if (zmq_setsockopt(publisher, ZMQ_SNDHWM, &maxsndmsg, sizeof(int)) < 0)
 	{ 
 		msg(LOG_ERR, "zmq_setsockopt(ZMQ_SNDHWM): %s", strerror(errno));
-		exit(EXIT_FAILURE);
+		goto endpublisher;
 	} 
 
         if (zmq_bind(publisher, path) < 0) {
                 msg(LOG_ERR, "zmq_bind(): %s", strerror(errno));
-                exit(EXIT_FAILURE);
+		goto endpublisher;
         }
 
         memset(&sin, 0, sizeof sin);
@@ -281,19 +279,19 @@ main (int argc, char *argv[])
 
         if ((fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
                 msg(LOG_ERR, "udp socket(): %s", strerror(errno));
-                exit(EXIT_FAILURE);
+		goto endpublisher;
         }
 
 	if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char *)&rcvlen, sizeof rcvlen) < 0)
 	{
         	msg(LOG_ERR, "error setting so_rcvbuf = %d: %s", rcvlen, 
 			strerror(errno));
-         	exit(EXIT_FAILURE);
+		goto endpublisher;
         }
 
         if (bind(fd, (struct sockaddr *)&sin, sizeof sin) < 0) {
                 msg(LOG_ERR, "udp bind(): %s", strerror(errno));
-                exit(EXIT_FAILURE);
+		goto endpublisher;
         }
 
         while (!done) {
@@ -330,15 +328,19 @@ main (int argc, char *argv[])
 		}
         }
 
+endpublisher:
+
 	if (zmq_close(publisher) < 0) {
                 msg(LOG_ERR, "zmq_close(): %s", strerror(errno));
                 exit(EXIT_FAILURE);
         }
+
+endcontext:
 
         if (zmq_ctx_destroy(context) < 0) {
                 msg(LOG_ERR, "zmq_ctx_destroy(): %s", strerror(errno));
                 exit(EXIT_FAILURE);
         }
 
-        return EXIT_SUCCESS;
+        return (done ? EXIT_SUCCESS : EXIT_FAILURE);
 }

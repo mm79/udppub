@@ -31,6 +31,7 @@ usage(const char *name)
 {
 	printf(
 		"\n%s\n"
+		"\t-b bsize buffer size for zmq_recv() default: 1500\n"
 		"\t-f filtername set filter for subscribe\n"
 		"\t-s pathname	path name eg. ipc:///tmp/serv.ipc\n"
 		"\t-h messages  set ZMQ_RCVHWM default 0 (unlimited)\n"
@@ -60,7 +61,7 @@ main (int argc, char *argv[])
 	extern char *optarg;
 
 
-	while ((opt = getopt(argc, argv, "f:b:s:")) != -1)
+	while ((opt = getopt(argc, argv, "f:b:h:s:")) != -1)
 		switch (opt) {
 			case 'b':
                                 if (sscanf(optarg, "%zd", &bsize) != 1) {
