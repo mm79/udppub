@@ -332,6 +332,7 @@ endpublisher:
 
 	if (zmq_close(publisher) < 0) {
                 msg(LOG_ERR, "zmq_close(): %s", strerror(errno));
+		zmq_ctx_destroy(context);
                 exit(EXIT_FAILURE);
         }
 
