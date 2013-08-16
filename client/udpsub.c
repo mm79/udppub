@@ -154,6 +154,7 @@ endsubscriber:
 
 	if (zmq_close(subscriber) < 0) {
                 fprintf(stderr, "zmq_close(): %s", strerror(errno));
+		zmq_ctx_destroy(context);
                 exit(EXIT_FAILURE);
         }
 
