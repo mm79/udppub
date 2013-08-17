@@ -48,7 +48,7 @@ catchsig()
 int
 main (int argc, char *argv[])
 {
-	char path[PATH_MAX] = "\0";
+	char path[PATH_MAX];
 	char filter[255] = "";
 	struct sigaction action;
         char *buf;
