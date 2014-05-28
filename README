@@ -1,4 +1,4 @@
-This daemon receives udp packets and send on a socket of type ZMQ_PUB
+This daemon receives udp packets and distributes them on a socket of type ZMQ_PUB
 
 According to zmq_socket(3):
 
